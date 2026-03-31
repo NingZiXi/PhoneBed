@@ -14,7 +14,7 @@
 
 [Gitee repository](https://gitee.com/htxstudio/PhoneBed)
 
-3D模型：[MakerWorld](https://makerworld.com.cn/zh/@user_1559444089/upload)
+3D模型：[MakerWorld](https://makerworld.com.cn/zh/models/2327961-htx-shou-ji-chuang#profileId-2633052)
 
 本项目使用ESP-IDF开发， 采用[Waveshare ESP32-S3-Touch-LCD-3.49B-EN](https://www.waveshare.net/shop/ESP32-S3-Touch-LCD-3.49B-EN.htm)开发板，开发环境搭建可以参考[这里](https://docs.espressif.com/projects/esp-idf/zh_CN/v5.5.1/esp32s3/get-started/index.html)
 
@@ -80,7 +80,7 @@ ESP-IDF v5.5.1工程源码
 
 ### 模型
 
-[MakerWorld](https://makerworld.com.cn/zh/@user_1559444089/upload)
+[MakerWorld](https://makerworld.com.cn/zh/models/2327961-htx-shou-ji-chuang#profileId-2633052)
 
 ### PCB：
 
@@ -129,6 +129,10 @@ ESP-IDF v5.5.1工程源码
 > 四个按键板安装槽位，任选2个进行安装即可。正视屏幕，左侧为左按键，右侧为右按键。
 
 > 注：转接板与控制板上下对应的BUTTON接口功能相同
+
+---
+
+如果有什么不足欢迎大家批评指正，感谢大家。
 
 ## 引用
 
