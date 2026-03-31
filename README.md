@@ -8,7 +8,7 @@
 
 视频参考：[为了不熬夜玩手机，我们做了这个...](https://www.bilibili.com/video/BV1LQwkzvEtZ)
 
-硬件开源：[HTXStudio手机床](https://oshwhub.com/htx-studio/PhoneBed)
+硬件开源：[HTXStudio手机床](https://oshwhub.com/htx-studio/project_kpilekig)
 
 [GitHub repository](https://github.com/htx-studio/PhoneBed)
 
