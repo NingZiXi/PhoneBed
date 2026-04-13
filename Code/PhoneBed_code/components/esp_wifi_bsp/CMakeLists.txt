@@ -6,4 +6,4 @@ idf_component_register(
   nvs_flash
   REQUIRES
   esp_wifi
-  INCLUDE_DIRS "./")
+  INCLUDE_DIRS "./" "../../main")
