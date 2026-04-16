@@ -20,6 +20,7 @@
 #include "lcd_bl_pwm_bsp.h"
 #include "i2c_equipment.h"
 #include "esp_wifi_bsp.h"
+#include "wifi_provisioner.h"
 #include "page.h"
 #include "button_bsp.h"
 #include "esp_io_expander.h"
@@ -37,6 +38,8 @@ TaskHandle_t onboard_button_task_handle = NULL; // 板载按钮任务句柄
 static SemaphoreHandle_t lvgl_mux = NULL;             // LVGL 互斥体
 static SemaphoreHandle_t flush_done_semaphore = NULL; // 刷新完成信号量
 uint8_t *lvgl_dest = NULL;                            // LVGL旋转缓冲区
+
+static bool wifi_connected = false; // WiFi连接状态标志
 
 static uint16_t *trans_buf_1; // DMA传输缓冲区
 
@@ -226,6 +229,18 @@ static void IRAM_ATTR charge_isr_handler(void *arg)
     fan_set_speed(FAN_SPEED_GRADE3); // 拉高风扇转速，防止温度过高
 }
 
+// WiFi Provisioning回调函数
+static void on_wifi_connected(void)
+{
+    ESP_LOGI(TAG, "WiFi connected successfully!");
+    wifi_connected = true;
+}
+
+static void on_portal_start(void)
+{
+    ESP_LOGI(TAG, "Captive portal started - connect to 'PhoneBed-Setup' to configure WiFi");
+}
+
 extern "C" void app_main(void)
 {
     cmd_init();                                      // 初始化命令行
@@ -340,7 +355,18 @@ extern "C" void app_main(void)
     audio_system_init(); // 先初始化音频系统（codec + record + playback）
 
     // =============================== WIFI相关初始化 ===============================
-    espwifi_Init(); // 初始化WiFi
+    wifi_prov_config_t wifi_config = WIFI_PROV_DEFAULT_CONFIG();
+    wifi_config.ap_ssid = "PhoneBed-Setup";
+    wifi_config.on_connected = on_wifi_connected;
+    wifi_config.on_portal_start = on_portal_start;
+    
+    ESP_LOGI(TAG, "Starting WiFi Provisioning");
+    ESP_ERROR_CHECK(wifi_prov_start(&wifi_config));
+    
+    ESP_LOGI(TAG, "Waiting for WiFi connection...");
+    ESP_ERROR_CHECK(wifi_prov_wait_for_connection(portMAX_DELAY));
+    
+    ESP_LOGI(TAG, "WiFi connected successfully");
 
     // 尝试多次获取网络时间，确保SNTP同步完成
     sntp_time_t stime = {0};
