@@ -4,6 +4,8 @@ build/
 # ESP-IDF
 managed_components/
 sdkconfig.old
+sdkconfig
+dependencies.lock
 
 # CMake
 CMakeCache.txt
