@@ -102,8 +102,8 @@ void motor_bsp_init()
     }
     else
     {
-        limit_direction = 0; // 初始状态未知
-        quilt_open(); // 先打开被子，让它移动到床头位置，触发限位霍尔，确定初始状态
+        limit_direction = 0;
+        quilt_open();
     }
 }
 
@@ -157,13 +157,11 @@ void quilt_open()
 {
     if (limit_direction == 1)
     {
-        // 已经在床头位置，直接返回
         return;
     }
-    motor_set_mode_speed(0, MOTOR_MODE_REVERSE, MOTOR_SPEED_80);
-    motor_set_mode_speed(1, MOTOR_MODE_FORWARD, MOTOR_SPEED_80);
-    // 恢复限位任务
-    limit_direction = 1; // 设置限位方向为床头限位
+    motor_set_mode_speed(0, MOTOR_MODE_REVERSE, MOTOR_SPEED_10);
+    motor_set_mode_speed(1, MOTOR_MODE_FORWARD, MOTOR_SPEED_10);
+    limit_direction = 1;
     vTaskResume(motor_limit_task_handle);
 }
 
@@ -171,13 +169,11 @@ void quilt_close()
 {
     if (limit_direction == -1)
     {
-        // 已经在床尾位置，直接返回
         return;
     }
-    motor_set_mode_speed(0, MOTOR_MODE_FORWARD, MOTOR_SPEED_80);
-    motor_set_mode_speed(1, MOTOR_MODE_REVERSE, MOTOR_SPEED_80);
-    // 读取限位霍尔状态，床尾位置
-    limit_direction = -1; // 设置限位方向为床尾限位
+    motor_set_mode_speed(0, MOTOR_MODE_FORWARD, MOTOR_SPEED_10);
+    motor_set_mode_speed(1, MOTOR_MODE_REVERSE, MOTOR_SPEED_10);
+    limit_direction = -1;
     vTaskResume(motor_limit_task_handle);
 }
 
