@@ -405,11 +405,11 @@ extern "C" void app_main(void)
 
     // ================================== 充电检测 ==================================
     gpio_config_t io_conf = {};                                         // 充电检测引脚配置
-    io_conf.intr_type = GPIO_INTR_NEGEDGE;                              // 下降沿触发中断，手机放上去充电时会触发
+    io_conf.intr_type = GPIO_INTR_POSEDGE;                              // 上升沿触发中断，充电时从低变高
     io_conf.pin_bit_mask = (1ULL << CHARGE_PIN);                        // 配置充电检测引脚
     io_conf.mode = GPIO_MODE_INPUT;                                     // 输入模式
-    io_conf.pull_up_en = GPIO_PULLUP_ENABLE;                            // 使能上拉模式
-    io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;                       // 禁用下拉模式
+    io_conf.pull_up_en = GPIO_PULLUP_DISABLE;                          // 禁用上拉（使用外部下拉）
+    io_conf.pull_down_en = GPIO_PULLDOWN_ENABLE;                        // 使能下拉，默认低电平
     ESP_ERROR_CHECK_WITHOUT_ABORT(gpio_config(&io_conf));               // 配置GPIO
     gpio_install_isr_service(ESP_INTR_FLAG_EDGE);                       // 注册中断服务
     gpio_isr_handler_add(CHARGE_PIN, charge_isr_handler, (void *)NULL); // 设置GPIO的中断服务函数
