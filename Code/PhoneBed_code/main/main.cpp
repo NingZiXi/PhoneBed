@@ -34,6 +34,7 @@ static const char *TAG = "PhoneBed_main";
 
 TaskHandle_t audio_task_handle = NULL;          // 音频任务句柄
 TaskHandle_t onboard_button_task_handle = NULL; // 板载按钮任务句柄
+TaskHandle_t charge_task_handle = NULL;        // 充电处理任务句柄
 
 static SemaphoreHandle_t lvgl_mux = NULL;             // LVGL 互斥体
 static SemaphoreHandle_t flush_done_semaphore = NULL; // 刷新完成信号量
@@ -225,8 +226,19 @@ static void example_lvgl_port_task(void *arg)
 // 手机放上去充上电后，会进这个中断服务程序
 static void IRAM_ATTR charge_isr_handler(void *arg)
 {
-    quilt_close();                   // 先把被子盖上
-    fan_set_speed(FAN_SPEED_GRADE3); // 拉高风扇转速，防止温度过高
+    vTaskNotifyGiveFromISR(charge_task_handle, NULL);
+}
+
+static void charge_task(void *arg)
+{
+    for (;;)
+    {
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        ESP_LOGI(TAG, "Charge started!");
+        quilt_close();
+        fan_set_speed(FAN_SPEED_GRADE3);
+        vTaskDelay(pdMS_TO_TICKS(3000));
+    }
 }
 
 // WiFi Provisioning回调函数
@@ -404,8 +416,10 @@ extern "C" void app_main(void)
     quilt_limit_reset(); // 重置被子状态
 
     // ================================== 充电检测 ==================================
+    xTaskCreate(charge_task, "charge_task", 4096, NULL, 3, &charge_task_handle);
+
     gpio_config_t io_conf = {};                                         // 充电检测引脚配置
-    io_conf.intr_type = GPIO_INTR_NEGEDGE;                              // 下降沿触发中断，手机放上去充电时会触发
+    io_conf.intr_type = GPIO_INTR_LOW_LEVEL;                               // 低电平触发，充电时为低
     io_conf.pin_bit_mask = (1ULL << CHARGE_PIN);                        // 配置充电检测引脚
     io_conf.mode = GPIO_MODE_INPUT;                                     // 输入模式
     io_conf.pull_up_en = GPIO_PULLUP_ENABLE;                            // 使能上拉模式

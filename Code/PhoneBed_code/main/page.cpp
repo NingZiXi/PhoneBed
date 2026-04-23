@@ -124,7 +124,7 @@ void page_create()
     page_alarm_clock();
     page_warning_clock();
 
-    lv_scr_load(warning_page);
+    lv_scr_load(now_page);
 
     current_page = PAGE_INDEX_TIME_CLOCK;
 }
