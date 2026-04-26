@@ -23,7 +23,7 @@ void audio_system_init(void)
     audio_ptr = (uint8_t *)heap_caps_malloc(288 * 1000 * sizeof(uint8_t), MALLOC_CAP_SPIRAM);
     user_audio_bsp_init();
     audio_play_init();
-    audio_playback_set_vol(50); // 设置初始音量
+    audio_playback_set_vol(95);
     ESP_LOGI(TAG, "Audio system initialized");
 }
 
@@ -32,8 +32,7 @@ void i2s_audio_task(void *arg)
     for (;;)
     {
         assert(audio_ptr);
-        // ESP_LOGI(TAG, "i2s_audio_task running");
-        audio_playback_set_vol(80);                      // 设置音量
+        audio_playback_set_vol(100);
         uint32_t bytes_sizt;                             // 获取音频数据大小
         size_t bytes_write = 0;                          // 已写入字节数
         uint8_t *data_ptr = i2s_get_handle(&bytes_sizt); // 获取音频数据指针和大小
