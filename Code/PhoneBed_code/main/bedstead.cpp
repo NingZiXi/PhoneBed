@@ -7,6 +7,7 @@
 #include "fan_bsp.h"
 #include <math.h>
 #include "esp_heap_caps.h"
+#include "esp_timer.h"
 
 static const char *TAG = "phonebed_task";
 
@@ -15,6 +16,7 @@ static uint8_t *audio_ptr = NULL;
 
 void bed_button_l_task(void *arg);
 void bed_button_r_task(void *arg);
+void bed_both_button_unlock_task(void *arg);
 
 void audio_system_init(void)
 {
@@ -56,6 +58,7 @@ void onboard_button_task(void *arg)
     // 创建床头按键任务
     xTaskCreatePinnedToCore(bed_button_l_task, "bed_button_l_task", 4 * 1024, NULL, 2, NULL, 1);
     xTaskCreatePinnedToCore(bed_button_r_task, "bed_button_r_task", 4 * 1024, NULL, 2, NULL, 1);
+    xTaskCreatePinnedToCore(bed_both_button_unlock_task, "bed_unlock_task", 4 * 1024, NULL, 2, NULL, 1);
     for (;;)
     {
         EventBits_t even = xEventGroupWaitBits(pwr_groups, set_bit_all, pdTRUE, pdFALSE, portMAX_DELAY);
@@ -201,4 +204,48 @@ void alarm_stop()
     quilt_open();
     // 风扇调整到最低转速
     fan_set_speed(FAN_SPEED_LOW);
+}
+
+#define BOTH_BUTTON_UNLOCK_HOLD_TIME_MS 2000
+
+void bed_both_button_unlock_task(void *arg)
+{
+    bool left_pressed = false;
+    bool right_pressed = false;
+    int64_t press_start_time = 0;
+
+    for (;;)
+    {
+        bool current_left = (gpio_get_level(BUTTON_PIN1) == 0);
+        bool current_right = (gpio_get_level(BUTTON_PIN2) == 0);
+
+        if (current_left && current_right)
+        {
+            if (!left_pressed && !right_pressed)
+            {
+                press_start_time = esp_timer_get_time() / 1000;
+                left_pressed = true;
+                right_pressed = true;
+                ESP_LOGI(TAG, "Both buttons pressed, waiting for unlock...");
+            }
+            else
+            {
+                int64_t hold_time = (esp_timer_get_time() / 1000) - press_start_time;
+                if (hold_time >= BOTH_BUTTON_UNLOCK_HOLD_TIME_MS)
+                {
+                    ESP_LOGI(TAG, "Both buttons long pressed, unlocking bed!");
+                    quilt_open();
+                    fan_set_speed(FAN_SPEED_LOW);
+                    press_start_time = esp_timer_get_time() / 1000;
+                }
+            }
+        }
+        else
+        {
+            left_pressed = false;
+            right_pressed = false;
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }
 }

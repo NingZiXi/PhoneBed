@@ -231,13 +231,21 @@ static void IRAM_ATTR charge_isr_handler(void *arg)
 
 static void charge_task(void *arg)
 {
+    bool was_charging = false;
     for (;;)
     {
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-        ESP_LOGI(TAG, "Charge started!");
-        quilt_close();
-        fan_set_speed(FAN_SPEED_GRADE3);
-        vTaskDelay(pdMS_TO_TICKS(3000));
+
+        gpio_num_t charge_pin = CHARGE_PIN;
+        bool is_charging = (gpio_get_level(charge_pin) == 0);
+
+        if (is_charging && !was_charging)
+        {
+            ESP_LOGI(TAG, "Charge started!");
+            quilt_close();
+            fan_set_speed(FAN_SPEED_GRADE3);
+        }
+        was_charging = is_charging;
     }
 }
 
@@ -394,15 +402,17 @@ extern "C" void app_main(void)
 
     if (stime.year != 0)
     {
-        // 成功获取网络时间
         ESP_LOGI(TAG, "Setting RTC time: %04d-%02d-%02d %02d:%02d:%02d",
                  stime.year, stime.month, stime.day, stime.hour, stime.minute, stime.second);
-        i2c_rtc_setTime(stime.year, stime.month, stime.day, stime.hour, stime.minute, stime.second); // 设置RTC时间
+        i2c_rtc_setTime(stime.year, stime.month, stime.day, stime.hour, stime.minute, stime.second);
     }
     else
     {
         ESP_LOGE(TAG, "Failed to get network time, RTC not updated");
     }
+
+    ESP_LOGI(TAG, "Stopping WiFi provisioning to reduce overhead...");
+    wifi_prov_stop();
 
     // =============================== 按键相关初始化 ===============================
     xTaskCreatePinnedToCore(onboard_button_task, "onboard_button_task", 8 * 1024, NULL, 2, &onboard_button_task_handle, 1); // 按钮事件
@@ -416,18 +426,18 @@ extern "C" void app_main(void)
     quilt_limit_reset(); // 重置被子状态
 
     // ================================== 充电检测 ==================================
-    xTaskCreate(charge_task, "charge_task", 4096, NULL, 3, &charge_task_handle);
+    xTaskCreatePinnedToCore(charge_task, "charge_task", 4096, NULL, 3, &charge_task_handle, 1);
 
-    gpio_config_t io_conf = {};                                         // 充电检测引脚配置
-    io_conf.intr_type = GPIO_INTR_LOW_LEVEL;                               // 低电平触发，充电时为低
-    io_conf.pin_bit_mask = (1ULL << CHARGE_PIN);                        // 配置充电检测引脚
-    io_conf.mode = GPIO_MODE_INPUT;                                     // 输入模式
-    io_conf.pull_up_en = GPIO_PULLUP_ENABLE;                            // 使能上拉模式
-    io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;                       // 禁用下拉模式
-    ESP_ERROR_CHECK_WITHOUT_ABORT(gpio_config(&io_conf));               // 配置GPIO
-    gpio_install_isr_service(ESP_INTR_FLAG_EDGE);                       // 注册中断服务
-    gpio_isr_handler_add(CHARGE_PIN, charge_isr_handler, (void *)NULL); // 设置GPIO的中断服务函数
-    gpio_intr_enable(CHARGE_PIN);                                       // 启用GPIO中断
+    gpio_config_t io_conf = {};
+    io_conf.intr_type = GPIO_INTR_ANYEDGE;
+    io_conf.pin_bit_mask = (1ULL << CHARGE_PIN);
+    io_conf.mode = GPIO_MODE_INPUT;
+    io_conf.pull_up_en = GPIO_PULLUP_ENABLE;
+    io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+    ESP_ERROR_CHECK_WITHOUT_ABORT(gpio_config(&io_conf));
+    gpio_install_isr_service(ESP_INTR_FLAG_EDGE);
+    gpio_isr_handler_add(CHARGE_PIN, charge_isr_handler, (void *)NULL);
+    gpio_intr_enable(CHARGE_PIN);
 
     // =================================== 其它 ===================================
     vTaskDelay(pdMS_TO_TICKS(1000 * 10)); // 主任务延时10秒

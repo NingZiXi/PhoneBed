@@ -51,31 +51,37 @@ void espwifi_Init(void)
 
 static void event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
 {
-    if (event_id == WIFI_EVENT_STA_START)
+    if (strcmp(event_base, WIFI_EVENT) == 0)
     {
-        esp_wifi_connect(); // 连接到 Wi-Fi
-        // esp_wifi_scan_u();
-    }
-    else if (event_id == IP_EVENT_STA_GOT_IP)
-    {
-        ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;
-        char ip[25];
-        uint32_t pxip = event->ip_info.ip.addr;
-        sprintf(ip, "%d.%d.%d.%d", (uint8_t)(pxip), (uint8_t)(pxip >> 8), (uint8_t)(pxip >> 16), (uint8_t)(pxip >> 24));
-        printf("IP: %s\n", ip);
-    }
-    else if (event_id == WIFI_EVENT_STA_DISCONNECTED)
-    {
-        wifi_retry_num++;
-        if (wifi_retry_num > MAXIMUM_RETRY_NUM)
+        if (event_id == WIFI_EVENT_STA_START)
         {
-            printf("Failed to connect to WiFi after %d attempts.\n", MAXIMUM_RETRY_NUM);
-            //此处可以添加额外的处理逻辑，例如切换到备用连接方法
-        } else {
-            wifi_event_sta_disconnected_t *event = (wifi_event_sta_disconnected_t *)event_data;
-            printf("WiFi disconnected, reason: %d\n", event->reason);
-            printf("Retrying to connect... (%d)\n", wifi_retry_num);
-            esp_wifi_connect(); //自动重新连接
+            esp_wifi_connect();
+        }
+        else if (event_id == WIFI_EVENT_STA_DISCONNECTED)
+        {
+            wifi_retry_num++;
+            if (wifi_retry_num > MAXIMUM_RETRY_NUM)
+            {
+                printf("Failed to connect to WiFi after %d attempts.\n", MAXIMUM_RETRY_NUM);
+            }
+            else
+            {
+                wifi_event_sta_disconnected_t *event = (wifi_event_sta_disconnected_t *)event_data;
+                printf("WiFi disconnected, reason: %d\n", event->reason);
+                printf("Retrying to connect... (%d)\n", wifi_retry_num);
+                esp_wifi_connect();
+            }
+        }
+    }
+    else if (strcmp(event_base, IP_EVENT) == 0)
+    {
+        if (event_id == IP_EVENT_STA_GOT_IP)
+        {
+            ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;
+            char ip[25];
+            uint32_t pxip = event->ip_info.ip.addr;
+            sprintf(ip, "%d.%d.%d.%d", (uint8_t)(pxip), (uint8_t)(pxip >> 8), (uint8_t)(pxip >> 16), (uint8_t)(pxip >> 24));
+            printf("IP: %s\n", ip);
         }
     }
 }

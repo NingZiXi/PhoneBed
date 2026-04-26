@@ -1,5 +1,7 @@
 #include "motor_bsp.h"
 #include "user_config.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 static const char *TAG = "motor_bsp";
 static motor_t motors[2];
@@ -53,7 +55,7 @@ void motor_limit_init()
     gpio_conf.mode = GPIO_MODE_INPUT;
     gpio_conf.pin_bit_mask = (1ULL << MOTOR_LIMIT_HEAD_PIN) | (1ULL << MOTOR_LIMIT_BOTTOM_PIN);
     gpio_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
-    gpio_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+    gpio_conf.pull_up_en = GPIO_PULLUP_ENABLE;
     ESP_ERROR_CHECK_WITHOUT_ABORT(gpio_config(&gpio_conf));
 }
 
@@ -93,7 +95,7 @@ void motor_bsp_init()
     motors[1].speed = MOTOR_SPEED_STOP;
 
     motor_limit_init();
-    xTaskCreate(motor_limit_task, "motor_limit_task", 1024, NULL, 10, &motor_limit_task_handle);
+    xTaskCreatePinnedToCore(motor_limit_task, "motor_limit_task", 4096, NULL, 10, &motor_limit_task_handle, 1);
     vTaskSuspend(motor_limit_task_handle); // 默认挂起，使用时再恢复
 
     if (gpio_get_level(MOTOR_LIMIT_HEAD_PIN) == 0)
@@ -159,8 +161,8 @@ void quilt_open()
     {
         return;
     }
-    motor_set_mode_speed(0, MOTOR_MODE_REVERSE, MOTOR_SPEED_10);
-    motor_set_mode_speed(1, MOTOR_MODE_FORWARD, MOTOR_SPEED_10);
+    motor_set_mode_speed(0, MOTOR_MODE_REVERSE, MOTOR_SPEED_80);
+    motor_set_mode_speed(1, MOTOR_MODE_FORWARD, MOTOR_SPEED_80);
     limit_direction = 1;
     vTaskResume(motor_limit_task_handle);
 }
@@ -171,8 +173,8 @@ void quilt_close()
     {
         return;
     }
-    motor_set_mode_speed(0, MOTOR_MODE_FORWARD, MOTOR_SPEED_10);
-    motor_set_mode_speed(1, MOTOR_MODE_REVERSE, MOTOR_SPEED_10);
+    motor_set_mode_speed(0, MOTOR_MODE_FORWARD, MOTOR_SPEED_80);
+    motor_set_mode_speed(1, MOTOR_MODE_REVERSE, MOTOR_SPEED_80);
     limit_direction = -1;
     vTaskResume(motor_limit_task_handle);
 }
