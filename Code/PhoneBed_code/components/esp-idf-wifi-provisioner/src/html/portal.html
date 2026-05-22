@@ -1,0 +1,555 @@
+<!doctype html>
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width,initial-scale=1" />
+		<title></title>
+		<style>
+			:root {
+				--sky-blue: #87CEEB;
+				--sky-blue-dark: #5DADE2;
+				--sky-blue-light: #AED6F1;
+				--yellow: #F4D03F;
+				--yellow-dark: #F1C40F;
+				--yellow-light: #F9E79F;
+				--white: #FFFFFF;
+				--gray-light: #F8F9FA;
+				--gray: #6C757D;
+				--gray-dark: #495057;
+				--text-dark: #2C3E50;
+			}
+			
+			* {
+				box-sizing: border-box;
+			}
+			
+			body {
+				font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+				margin: 0;
+				padding: 20px;
+				background: linear-gradient(135deg, var(--sky-blue-light) 0%, var(--sky-blue) 100%);
+				min-height: 100vh;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+			}
+			
+			.lang-switch {
+				position: absolute;
+				top: 20px;
+				right: 20px;
+				display: flex;
+				gap: 8px;
+				z-index: 100;
+			}
+			
+			.lang-btn {
+				padding: 6px 12px;
+				border: 2px solid var(--white);
+				background: rgba(255, 255, 255, 0.2);
+				color: var(--white);
+				border-radius: 20px;
+				cursor: pointer;
+				font-size: 0.85em;
+				font-weight: 600;
+				transition: all 0.3s ease;
+			}
+			
+			.lang-btn:hover {
+				background: var(--white);
+				color: var(--sky-blue-dark);
+			}
+			
+			.lang-btn.active {
+				background: var(--yellow);
+				border-color: var(--yellow);
+				color: var(--text-dark);
+			}
+			
+			.c {
+				max-width: 420px;
+				width: 100%;
+				margin: 0 auto;
+				background: var(--white);
+				padding: 32px;
+				border-radius: 16px;
+				box-shadow: 0 8px 32px rgba(93, 173, 226, 0.3);
+				position: relative;
+			}
+			
+			.header-icon {
+				text-align: center;
+				margin-bottom: 20px;
+			}
+			
+			.header-icon svg {
+				width: 64px;
+				height: 64px;
+				fill: var(--sky-blue-dark);
+			}
+			
+			h1 {
+				margin: 0 0 8px 0;
+				font-size: 1.6em;
+				color: var(--text-dark);
+				text-align: center;
+				font-weight: 700;
+			}
+			
+			p {
+				font-size: 0.95rem;
+				margin: 0 0 24px 0;
+				color: var(--gray);
+				text-align: center;
+				line-height: 1.5;
+			}
+			
+			.error {
+				color: #E74C3C;
+				background-color: #FADBD8;
+				font-size: 0.85em;
+				margin-top: 16px;
+				text-wrap: balance;
+				border-radius: 8px;
+				padding: 12px;
+				text-align: center;
+				border-left: 4px solid #E74C3C;
+			}
+			
+			.footer {
+				margin-top: 24px;
+				font-size: 0.8em;
+				color: rgba(255, 255, 255, 0.8);
+				text-align: center;
+			}
+			
+			label {
+				display: block;
+				margin: 16px 0 6px;
+				font-size: 0.9em;
+				color: var(--gray-dark);
+				font-weight: 600;
+			}
+			
+			input[type='text'] {
+				width: 100%;
+				box-sizing: border-box;
+				padding: 14px;
+				border: 2px solid #E9ECEF;
+				border-radius: 10px;
+				font-size: 1em;
+				transition: all 0.3s ease;
+				background: var(--gray-light);
+			}
+			
+			input[type='text']:focus {
+				outline: none;
+				border-color: var(--sky-blue);
+				background: var(--white);
+				box-shadow: 0 0 0 3px rgba(135, 206, 235, 0.2);
+			}
+			
+			button {
+				margin-top: 24px;
+				width: 100%;
+				padding: 16px;
+				background: linear-gradient(135deg, var(--sky-blue-dark) 0%, var(--sky-blue) 100%);
+				color: var(--white);
+				border: none;
+				border-radius: 10px;
+				font-size: 1em;
+				cursor: pointer;
+				font-weight: 700;
+				letter-spacing: 0.5px;
+				box-shadow: 0 4px 15px rgba(93, 173, 226, 0.4);
+				transition: all 0.3s ease;
+			}
+			
+			button:hover {
+				background: linear-gradient(135deg, var(--sky-blue) 0%, var(--sky-blue-dark) 100%);
+				transform: translateY(-2px);
+				box-shadow: 0 6px 20px rgba(93, 173, 226, 0.5);
+			}
+			
+			button:active {
+				transform: translateY(0);
+			}
+			
+			button:disabled {
+				background: var(--gray);
+				cursor: not-allowed;
+				transform: none;
+				box-shadow: none;
+			}
+			
+			#nets {
+				max-height: 280px;
+				overflow-y: auto;
+				margin: 24px 0;
+				border-radius: 12px;
+				background: var(--gray-light);
+				box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
+			}
+			
+			#scanning {
+				background: var(--white);
+				padding: 16px;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				color: var(--gray);
+				font-weight: 500;
+			}
+			
+			.spinner {
+				width: 16px;
+				height: 16px;
+				border: 3px solid var(--sky-blue-light);
+				border-top: 3px solid var(--sky-blue-dark);
+				border-radius: 50%;
+				animation: spin 1s linear infinite;
+			}
+			
+			@keyframes spin {
+				from { transform: rotate(0deg); }
+				to { transform: rotate(360deg); }
+			}
+			
+			.net {
+				padding: 14px 16px;
+				background: var(--white);
+				cursor: pointer;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				margin-bottom: 2px;
+				font-size: 0.95em;
+				color: var(--text-dark);
+				transition: all 0.2s ease;
+				border-left: 3px solid transparent;
+			}
+			
+			.net:last-child {
+				margin-bottom: 0;
+				border-radius: 0 0 12px 12px;
+			}
+			
+			.net:first-child {
+				border-radius: 12px 12px 0 0;
+			}
+			
+			.net:hover {
+				background: linear-gradient(90deg, var(--sky-blue-light) 0%, var(--white) 100%);
+				border-left-color: var(--yellow);
+			}
+			
+			.ssid {
+				max-width: 75%;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+				font-weight: 500;
+			}
+			
+			.icons {
+				display: flex;
+				align-items: center;
+				gap: 8px;
+				flex-shrink: 0;
+			}
+			
+			.lock {
+				width: 14px;
+				height: 14px;
+				fill: var(--gray);
+			}
+			
+			.net:hover .lock {
+				fill: var(--sky-blue-dark);
+			}
+			
+			.bars {
+				width: 20px;
+				height: 16px;
+			}
+			
+			.bar-on {
+				fill: var(--yellow-dark);
+			}
+			
+			.bar-off {
+				fill: #DEE2E6;
+			}
+			
+			.net:hover .bar-on {
+				fill: var(--yellow);
+			}
+			
+			.success-icon {
+				width: 80px;
+				height: 80px;
+				margin: 0 auto 20px;
+				background: linear-gradient(135deg, var(--yellow) 0%, var(--yellow-dark) 100%);
+				border-radius: 50%;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				box-shadow: 0 4px 15px rgba(244, 208, 63, 0.4);
+			}
+			
+			.success-icon svg {
+				width: 40px;
+				height: 40px;
+				fill: var(--white);
+			}
+			
+			/* Scrollbar styling */
+			#nets::-webkit-scrollbar {
+				width: 6px;
+			}
+			
+			#nets::-webkit-scrollbar-track {
+				background: transparent;
+			}
+			
+			#nets::-webkit-scrollbar-thumb {
+				background: var(--sky-blue-light);
+				border-radius: 3px;
+			}
+			
+			#nets::-webkit-scrollbar-thumb:hover {
+				background: var(--sky-blue);
+			}
+		</style>
+	</head>
+	<body>
+		<div class="lang-switch">
+			<button class="lang-btn active" onclick="setLanguage('zh')" data-lang="zh">中文</button>
+			<button class="lang-btn" onclick="setLanguage('en')" data-lang="en">English</button>
+		</div>
+		
+		<div class="c">
+			<div class="header-icon">
+				<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+			</div>
+			<h1 id="hdr">WiFi配网</h1>
+			<p id="sub">请选择要连接的WiFi网络并输入密码</p>
+			<div id="portal">
+				<div id="nets">
+					<div id="scanning">
+						<div data-i18n="scanning">正在扫描网络...</div>
+						<div class="spinner"></div>
+					</div>
+				</div>
+				<form id="frm" autocomplete="off">
+					<label for="s" data-i18n="ssid_label">网络名称 (SSID)</label>
+					<input type="text" id="s" name="ssid" required maxlength="32" autocomplete="off" placeholder="选择或输入WiFi名称" data-i18n-placeholder="ssid_placeholder" />
+					<label for="p" data-i18n="password_label">密码</label>
+					<input type="text" id="p" name="password" maxlength="64" autocomplete="off" placeholder="输入WiFi密码" data-i18n-placeholder="password_placeholder" />
+					<div id="err" class="error" style="display: none"></div>
+					<button type="submit" id="btn" data-i18n="connect_btn">连接网络</button>
+				</form>
+			</div>
+			<div id="done" style="display: none; text-align: center">
+				<div class="success-icon">
+					<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+				</div>
+				<h1 id="done-hdr"></h1>
+				<p id="done-sub"></p>
+			</div>
+		</div>
+		<p id="ftr" class="footer"></p>
+		
+		<script>
+			// 多语言配置
+			const i18n = {
+				zh: {
+					scanning: '正在扫描网络...',
+					scan_failed: '扫描失败！',
+					no_networks: '未找到网络',
+					ssid_label: '网络名称 (SSID)',
+					password_label: '密码',
+					ssid_placeholder: '选择或输入WiFi名称',
+					password_placeholder: '输入WiFi密码',
+					connect_btn: '连接网络',
+					connecting: '连接中...',
+					conn_failed: '连接失败，请检查密码后重试',
+					req_failed: '请求失败，请重试',
+					success_title: '连接成功！',
+					success_msg: '设备已成功连接到网络，正在重启...'
+				},
+				en: {
+					scanning: 'Scanning for networks...',
+					scan_failed: 'Scan failed!',
+					no_networks: 'No networks found',
+					ssid_label: 'Network Name (SSID)',
+					password_label: 'Password',
+					ssid_placeholder: 'Select or enter WiFi name',
+					password_placeholder: 'Enter WiFi password',
+					connect_btn: 'Connect',
+					connecting: 'Connecting...',
+					conn_failed: 'Connection failed. Please check your credentials and try again.',
+					req_failed: 'Request failed. Please try again.',
+					success_title: 'Connected!',
+					success_msg: 'Device has been successfully connected to the network and is restarting...'
+				}
+			};
+			
+			let currentLang = 'zh';
+			
+			function setLanguage(lang) {
+				currentLang = lang;
+				document.querySelectorAll('.lang-btn').forEach(btn => {
+					btn.classList.toggle('active', btn.dataset.lang === lang);
+				});
+				updatePageLanguage();
+			}
+			
+			function updatePageLanguage() {
+				// 更新带有 data-i18n 属性的元素文本
+				document.querySelectorAll('[data-i18n]').forEach(el => {
+					const key = el.dataset.i18n;
+					if (i18n[currentLang][key]) {
+						el.textContent = i18n[currentLang][key];
+					}
+				});
+				
+				// 更新带有 data-i18n-placeholder 属性的元素placeholder
+				document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+					const key = el.dataset.i18nPlaceholder;
+					if (i18n[currentLang][key]) {
+						el.placeholder = i18n[currentLang][key];
+					}
+				});
+				
+				// 使用i18n翻译更新标题和副标题（覆盖服务器配置）
+				const translatedHeaders = {
+					zh: { header: 'WiFi配网', subheader: '请选择要连接的WiFi网络并输入密码' },
+					en: { header: 'WiFi Setup', subheader: 'Please select a WiFi network and enter password' }
+				};
+				document.getElementById('hdr').textContent = translatedHeaders[currentLang].header;
+				document.getElementById('sub').innerHTML = translatedHeaders[currentLang].subheader;
+				
+				// 更新成功页面文字
+				const translatedSuccess = {
+					zh: { header: '连接成功！', subheader: '设备已成功连接到网络，正在重启...' },
+					en: { header: 'Connected!', subheader: 'Device has been successfully connected to the network and is restarting...' }
+				};
+				document.getElementById('done-hdr').textContent = translatedSuccess[currentLang].header;
+				document.getElementById('done-sub').innerHTML = translatedSuccess[currentLang].subheader;
+			}
+			
+			function getText(key) {
+				return i18n[currentLang][key] || i18n['en'][key];
+			}
+			
+			var cfg
+			function bars(rssi) {
+				var a = rssi >= -50 ? 5 : rssi >= -60 ? 4 : rssi >= -70 ? 3 : rssi >= -80 ? 2 : 1
+				function b(i) {
+					return a >= i ? 'bar-on' : 'bar-off'
+				}
+				return (
+					'<svg class="bars" viewBox="0 0 20 14">' +
+					'<rect class="' + b(1) + '" x="0"  y="11"  width="3" rx="0.5" height="3"/>' +
+					'<rect class="' + b(2) + '" x="4"  y="8"   width="3" rx="0.5" height="6"/>' +
+					'<rect class="' + b(3) + '" x="8"  y="5.5" width="3" rx="0.5" height="8.5"/>' +
+					'<rect class="' + b(4) + '" x="12" y="3"   width="3" rx="0.5" height="11"/>' +
+					'<rect class="' + b(5) + '" x="16" y="0"   width="3" rx="0.5" height="14"/>' +
+					'</svg>'
+				)
+			}
+			
+			// 默认配置
+			const defaultConfig = {
+				title: 'PhoneBed-Setup',
+				portal_header: currentLang === 'zh' ? 'WiFi配网' : 'WiFi Setup',
+				portal_subheader: currentLang === 'zh' ? '请选择要连接的WiFi网络并输入密码' : 'Please select a WiFi network and enter password',
+				connected_header: currentLang === 'zh' ? '连接成功！' : 'Connected!',
+				connected_subheader: currentLang === 'zh' ? '设备已成功连接到网络' : 'Device has been successfully connected',
+				footer: 'PhoneBed'
+			};
+			
+			function applyConfig(c) {
+				cfg = c || defaultConfig;
+				document.title = cfg.title || defaultConfig.title;
+				document.getElementById('hdr').textContent = cfg.portal_header || defaultConfig.portal_header;
+				if (cfg.portal_subheader) {
+					document.getElementById('sub').innerHTML = cfg.portal_subheader;
+				} else {
+					document.getElementById('sub').remove();
+				}
+				if (cfg.footer) {
+					document.getElementById('ftr').innerHTML = cfg.footer;
+				} else {
+					document.getElementById('ftr').remove();
+				}
+				document.querySelector('.c').style.display = '';
+			}
+			
+			fetch('/config')
+				.then((r) => r.json())
+				.then((c) => {
+					applyConfig(c);
+				})
+				.catch((err) => {
+					console.log('Config fetch failed, using defaults:', err);
+					applyConfig(defaultConfig);
+				})
+			
+			fetch('/scan')
+				.then((r) => r.json())
+				.then((d) => {
+					let h = ''
+					d.forEach((n) => {
+						let lock = n.auth > 0
+							? '<svg class="lock" viewBox="0 0 24 18"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1s3.1 1.39 3.1 3.1v2z"/></svg>'
+							: ''
+						h += '<div class="net" onclick="document.getElementById(\'s\').value=\'' + n.ssid + '\';document.getElementById(\'p\').focus();"><span class="ssid">' + n.ssid + '</span><span class="icons">' + lock + bars(n.rssi) + '</span></div>'
+					})
+					document.getElementById('nets').innerHTML = h || getText('no_networks')
+				})
+				.catch(() => {
+					document.getElementById('scanning').innerHTML = '<div data-i18n="scan_failed">' + getText('scan_failed') + '</div>'
+				})
+			
+			document.getElementById('frm').addEventListener('submit', function (e) {
+				e.preventDefault()
+				var btn = document.getElementById('btn')
+				var err = document.getElementById('err')
+				err.style.display = 'none'
+				btn.disabled = true
+				btn.innerHTML = '<span class="spinner" style="display:inline-block;vertical-align:middle;margin-right:8px;border-color:#fff;border-top-color:transparent;width:14px;height:14px;"></span>' + getText('connecting')
+				
+				fetch('/save', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+					body: 'ssid=' + encodeURIComponent(document.getElementById('s').value) + '&password=' + encodeURIComponent(document.getElementById('p').value),
+				})
+					.then((r) => r.json())
+					.then((d) => {
+						if (d.success) {
+							document.getElementById('portal').style.display = 'none'
+							document.getElementById('hdr').style.display = 'none'
+							var sub = document.getElementById('sub')
+							if (sub) sub.style.display = 'none'
+							document.getElementById('done').style.display = ''
+							document.getElementById('done-hdr').textContent = getText('success_title')
+							document.getElementById('done-sub').textContent = getText('success_msg')
+						} else {
+							err.textContent = getText('conn_failed')
+							err.style.display = ''
+							btn.disabled = false
+							btn.textContent = getText('connect_btn')
+						}
+					})
+					.catch(() => {
+						err.textContent = getText('req_failed')
+						err.style.display = ''
+						btn.disabled = false
+						btn.textContent = getText('connect_btn')
+					})
+			})
+		</script>
+	</body>
+</html>
